@@ -89,12 +89,11 @@ Function Connect-OneViewAppliance {
         $message = "Generating report for $shortFQDN..."
         Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
 
-        # Define the path to the Excel file
-        $folderPath = Join-Path -Path $scriptPath -ChildPath "Oneview_Version_Report"
-        $excelFilePath = Join-Path -Path $folderPath -ChildPath "Users_$shortFQDN.xlsx"
-
         # Get the OneView version
         $oneViewVersion = Get-HPOVVersion
+
+        # Log the output of the Get-HPOVVersion cmdlet
+        Write-Log -Message ("Get-HPOVVersion output: " + $oneViewVersion) -Level "Info" -sFullPath $global:sFullPath
 
         # Create an object with the required properties
         $outputObject = New-Object -TypeName PSObject
@@ -103,15 +102,8 @@ Function Connect-OneViewAppliance {
         $outputObject | Add-Member -MemberType NoteProperty -Name "LibraryVersion" -Value $oneViewVersion.LibraryVersion
         $outputObject | Add-Member -MemberType NoteProperty -Name "Path" -Value $oneViewVersion.Path
 
-        # Export the object to an Excel file
-        $outputObject | Export-Excel -Path $excelFilePath
-
-        # Check if the folder exists and create it if it doesn't
-        if (-not (Test-Path -Path $folderPath)) {
-            New-Item -ItemType Directory -Path $folderPath | Out-Null
-            $message = "Reports folder does not exist. Created new folder: $folderPath"
-            Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
-        }
+        # Add the object to the array
+        $outputObjects += $outputObject
     }
     catch {
         # If a connection already exists, log a message and continue
