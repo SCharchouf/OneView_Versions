@@ -81,16 +81,17 @@ Function Connect-OneViewAppliance {
         Connect-OVMgmt -Hostname $ApplianceFQDN -Credential $Credential -ErrorAction Stop
 
         # If the connection is successful, log a success message
-        $message = "Successfully connected to : $ApplianceFQDN"
+        $shortFQDN = ($ApplianceFQDN -split '\.')[0]
+        $message = "Successfully connected to : $shortFQDN"
         Write-Log -Message $message -Level "OK" -sFullPath $global:sFullPath
 
         # Log a progress message
-        $message = "Generating report for $ApplianceFQDN..."
+        $message = "Generating report for $shortFQDN..."
         Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
 
         # Define the path to the Excel file
         $folderPath = Join-Path -Path $scriptPath -ChildPath "Oneview_Version_Report"
-        Join-Path -Path $folderPath -ChildPath "Users_$ApplianceFQDN.xlsx"
+        Join-Path -Path $folderPath -ChildPath "Users_$shortFQDN.xlsx"
 
         # Check if the folder exists and create it if it doesn't
         if (-not (Test-Path -Path $folderPath)) {
@@ -107,12 +108,12 @@ Function Connect-OneViewAppliance {
     catch {
         # If a connection already exists, log a message and continue
         if ($_.Exception.Message -like "*already connected*") {
-            $message = "Already connected to : $ApplianceFQDN"
+            $message = "Already connected to : $shortFQDN"
             Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
         }
         else {
             # If the connection fails for any other reason, log an error message
-            $message = "Failed to connect to : $ApplianceFQDN. Error details: $($_.Exception.Message)"
+            $message = "Failed to connect to : $shortFQDN. Error details: $($_.Exception.Message)"
             Write-Log -Message $message -Level "Error" -sFullPath $global:sFullPath
         }    
     }
