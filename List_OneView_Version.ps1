@@ -14,39 +14,29 @@ function Import-RequiredModules {
     )
     # Start logging
     Start-Log -ScriptVersion $ScriptVersion -ScriptPath $PSCommandPath
-    
-    $missingModules = @()  # Empty list to store any missing modules
-    $importedModules = @()  # Empty list to store imported modules
-
-    # Check what modules you have on hand
-    $availableModules = Get-Module -ListAvailable -Name $moduleNames
-
-    # See if any modules are missing from your toolbox
-    foreach ($moduleName in $moduleNames) {
-        if (-not ($availableModules | Where-Object { $_.Name -eq $moduleName })) {
-            $missingModules += $moduleName
+    foreach ($ModuleName in $ModuleNames) {
+        if (Get-Module -ListAvailable -Name $ModuleName) {
+            if (-not (Get-Module -Name $ModuleName)) {
+                Import-Module $ModuleName
+                if (-not (Get-Module -Name $ModuleName)) {
+                    $message = "`tFailed to import module '$ModuleName'."
+                    Write-Log -Message $message -Level "Error" -sFullPath $global:sFullPath
+                }
+                else {
+                    $message = "`tModule '$ModuleName' imported successfully."
+                    Write-Log -Message $message -Level "OK" -sFullPath $global:sFullPath
+                }
+            }
+            else {
+                $message = "`tModule '$ModuleName' is already imported."
+                Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
+            }
+        }
+        else {
+            $message = "`tModule '$ModuleName' does not exist."
+            Write-Log -Message $message -Level "Error" -sFullPath $global:sFullPath
         }
     }
-
-    # If some modules are missing, yell about it and then exit
-    if ($missingModules.Count -gt 0) {
-        Write-Log -Message "Uh oh! Missing modules: $($missingModules -join ', ')" -Level "Error" -sFullPath $global:sFullPath
-        Exit 1
-    }
-
-    # If all modules are present, import the ones you need
-    foreach ($moduleName in $moduleNames) {
-        if (-not (Get-Module -ListAvailable -Name $moduleName)) {
-            Import-Module $moduleName
-            $importedModules += $moduleName
-        }
-    }
-
-    # Log which modules you snagged from the toolbox
-    if ($importedModules.Count -gt 0) {
-        Write-Log -Message "Imported these modules: $($importedModules -join ', ')" -Level "OK" -sFullPath $global:sFullPath
-    }
-
 }
 $requiredModules = @('HPEOneView.660', 'Microsoft.PowerShell.Security', 'Microsoft.PowerShell.Utility', 'ImportExcel')
 Import-RequiredModules -moduleNames $requiredModules
