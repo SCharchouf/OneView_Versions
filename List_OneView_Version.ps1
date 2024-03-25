@@ -12,7 +12,9 @@ function Import-RequiredModules {
         [Parameter(Mandatory = $true)]
         [string[]]$moduleNames
     )
-
+    # Start logging
+    Start-Log -ScriptVersion $ScriptVersion -ScriptPath $PSCommandPath
+    
     $missingModules = @()  # Empty list to store any missing modules
     $importedModules = @()  # Empty list to store imported modules
 
@@ -48,22 +50,3 @@ function Import-RequiredModules {
 }
 $requiredModules = @('HPEOneView.660', 'Microsoft.PowerShell.Security', 'Microsoft.PowerShell.Utility', 'ImportExcel')
 Import-RequiredModules -moduleNames $requiredModules
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------- [Script Variables] ----------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Construct the CSV path with clarity and error handling
-$csvPath = Join-Path $scriptPath -ChildPath "..\Appliances_List\Appliances_List.csv"
-# Validate the CSV file's existence before importing
-if (Test-Path $csvPath) {
-    # Import the CSV data, leveraging parameter splatting for readability
-    Import-Csv @{
-        Path = $csvPath
-        # Specify delimiter if needed (example: -Delimiter ";")
-    }
-
-    # Log a clear message with structured formatting
-    Write-Log -Message "CSV data imported successfully from $csvPath" -Level "Information" -sFullPath $global:sFullPath
-} else {
-    # Handle the missing file scenario gracefully
-    Write-Error "CSV file not found at $csvPath. Please verify the path or file existence."
-}
