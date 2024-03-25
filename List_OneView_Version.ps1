@@ -81,17 +81,23 @@ Function Connect-OneViewAppliance {
         Connect-OVMgmt -Hostname $ApplianceFQDN -Credential $Credential -ErrorAction Stop
 
         # If the connection is successful, log a success message
-        $shortFQDN = ($ApplianceFQDN -split '\.')[0]
+        $shortFQDN = ($ApplianceFQDN -split '\.')[0].ToUpper()
         $message = "Successfully connected to : $shortFQDN"
         Write-Log -Message $message -Level "OK" -sFullPath $global:sFullPath
 
         # Log a progress message
-        $message = "Generating report for $shortFQDN..."
+        $message = "Collecting infromation from : $shortFQDN..."
         Write-Log -Message $message -Level "Info" -sFullPath $global:sFullPath
 
         # Define the path to the Excel file
         $folderPath = Join-Path -Path $scriptPath -ChildPath "Oneview_Version_Report"
-        Join-Path -Path $folderPath -ChildPath "Users_$shortFQDN.xlsx"
+        $excelFilePath = Join-Path -Path $folderPath -ChildPath "Oneview_Version_Report.xlsx"
+
+        # Get the OneView version
+        $oneViewVersion = Get-HPOVVersion
+
+        # Export the OneView version to an Excel file
+        $oneViewVersion | Export-Excel -Path $excelFilePath
 
         # Check if the folder exists and create it if it doesn't
         if (-not (Test-Path -Path $folderPath)) {
